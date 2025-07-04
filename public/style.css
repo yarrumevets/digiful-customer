@@ -1,0 +1,103 @@
+body {
+  margin: 0;
+  /* font-family: Verdana, Geneva, Tahoma, sans-serif; */
+  background-color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  color: white;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+p,
+a,
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin: 0;
+}
+
+header,
+footer {
+  flex-shrink: 0;
+}
+
+header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #222;
+  background-color: white;
+  width: 100%;
+}
+
+header h1#page-title {
+  display: flex;
+  justify-content: center;
+  font-size: 3vw;
+  margin: 3vw auto;
+}
+
+a {
+  text-decoration: none;
+  color: lightblue;
+}
+a:visited {
+  color: lightblue;
+}
+a:hover {
+  color: aqua;
+}
+
+hr {
+  width: 80%;
+  background-color: #aaa;
+  border: 0;
+  height: 4px;
+}
+
+/* Main */
+main {
+  flex-grow: 1;
+  background-color: #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Footer, etc. */
+footer {
+  color: #aaa;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin-top: 5vw;
+}
+
+#fine-print {
+  display: flex;
+  background-color: #222;
+  font-size: 0.5em;
+  height: 96px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+/* main.html */
+#welcome-message {
+  margin: auto;
+}
+#welcome-message h2 {
+  margin-bottom: 1vw;
+}

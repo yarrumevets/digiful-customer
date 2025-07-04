@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.code-workspace
+.vscode
+node_modules/
+*.log
+.env
+
+aws.secret.js
+shopify.secret.js
+data/products.json
+data/logs.json
+data/orders.json
+public/config.js
