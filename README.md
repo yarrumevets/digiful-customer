@@ -1,6 +1,6 @@
-# 🛍️ shopifydd
+# 🛍️ Dijiful-Customer
 
-- Shopify digital products fulfillment app
+- Customer digital product fulfillment side of the Digiful Shopify app.
 
 ## Table of Contents
 
@@ -12,50 +12,39 @@
 - [Setup](#setup)
 - [Usage](#usage)
 - [Resources](#resources)
-- [TODO](#TODO)
 
 ## Introduction
 
-- Shopify digital products fulfillment app
+- Customer digital product fulfillment side of the Digiful Shopify app.
 
 ## Tech
 
 - Simple vanilla JavaScript front-end &amp; back-end (Node/Express)
 - Shopify API integration
 - AWS S3 integration
-- JSON file read/write in lieu of database integration
+- MongoDB for storing merchant, product, order, and logging info
 - GraphQL client
+- Shopify webhook verification with HMAC verification
 
 ## Features
 
-- Stores order information for a Shopify store
-- Allows customers to link to the app and receive signed URLs to their digital products stored in AWS S3
-- JSON files for storing and retrieving order and product information
-- Shopify webhook verification with HMAC verification
-- Simple config for easy white labeling (Page title).
-- Configuration sample files for each of the gitignored files.
+- Captures customer checkout for digital products purchased on Shopify stores that have installed the dijiful app.
+- Send an email/SMS to customers with a link to the download page for the digital products they purchased
+- Verifies customers via a hash lookup for an oder and serverse up a file via a signed url to an S3 bucket
+- Captures various stats that cannot be gathered in Shopify directly. (TBD)
+- Verifies that the customer has downloaded the file.
 
 ## Roadmap
 
-In no particular order:
-
-- Send more user-friendly information along with URLs: images, title, (SKU), etc.
-- Get and store SKU with product info.
-- Implement optional MongoDB integration for storing products, orders, and logs.
-- Logging for: errors, duplicates orders, etc.
-- Login/auth needed for admin page
-- Front-end and API endpoints for adding/editing products
-- Use products/create webhook to add products automatically from Shopify (check SKU for)
-- User page - returning users can look up their files, see new versions, etc.
-- Security features to deal with the bulk of bots, crawlers.
+TBD
 
 ## Installation
 
 Step-by-step instructions on how to get the development environment running.
 
 ```bash
-git clone https://github.com/yarrumevets/shopifydd.git
-cd shopifydd
+git clone https://github.com/yarrumevets/dijiful-customer.git
+cd dijiful-customer
 yarn
 ```
 
@@ -72,86 +61,40 @@ yarn
 - and, public/SAMPLE.config.js,
   ...to their respective names without 'SAMPLE'. Verify that these are all ignored by git!
 
+(Note: aws.secret.js and shopify.secret.js will be gitignored once renamed.)
+
 ### 🔹 Ngrok (optional)
 
 - Install and run [Ngrok](https://ngrok.com) for the Shopify webhook:
   `ngrok http 4199`
 
-### 🔹 Register webhook
+### 🔹 dijiful admin
 
-- Set up shopify webhook with your ngrok/live url using this cURL command in your terminal:
+- Run the [dijiful](https://github.com/yarrumevets/digiful) admin app locally and set it up as per the README.md instructions.
 
-```curl -v -X POST "https://<your-default-shop-url>.myshopify.com/admin/api/2023-04/webhooks.json" \
--H "X-Shopify-Access-Token: xxxxx_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" \
--H "Content-Type: application/json" \
--d '{
-"webhook": {
-"topic": "orders/paid",
-"address": "https://<XXXX-###-###-###-###.ngrok-free.app>/webhooks/custom/orders-paid",
-"format": "json"
-}
-}'
-```
+### 🔹 MongoDB
 
-(Note: Don't use your custom Shopify subdomain or custom domain. Use your original default store URL)
+- Setup and start [mongodb](https://www.mongodb.com/docs/manual/installation/) to run in the background at the default port 27017
 
-### 🔹 Add a Digital Product
+### 🔹 AWS S3
 
-- Add a digital product to your Shopify store with a SKU containing the string "DIGI". (Ex: 0001-DIGI-BLUE)
+Setup an S3 bucket on AWS - [Getting started with Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/GetStartedWithS3.html)
 
-### 🔹 Email Template (Liquid)
+### 🔹 Shopify
 
-- Go to this page in Shopify: `https://admin.shopify.com/store/<YOUR_STORE_ID>/email_templates/order_confirmation/preview`
-
-- Or navigate there from your Shopify store: Settings > Notifications > Customer Notifications > Order Confirmation
-- Edit Code
-  Add in this Liquid script block somewhere in the email body. It checks for products purchased that contain 'DIGI' in the SKU and adds them to a list of download links:
-
-```
-
-{% assign has_digi = false %}
-{% for line_item in order.line_items %}
-  {% if line_item.sku contains "DIGI" %}
-    {% if has_digi == false %}
-<div style="margin: 20px auto; border: 3px dashed #444; text-align: center; background-color: beige; color: #222; padding: 30px 5px; border-radius: 10px; max-width: 1200px;">
-  <h3 style="margin-bottom: 0;">🤖 Your digital purchases 🤖</h3>
-  <ul style="padding: 0; list-style: none;">
-    {% assign has_digi = true %}
-    {% endif %}
-    <li>{{ line_item.title }}</li>
-  {% endif %}
-{% endfor %}
-{% if has_digi %}
-  </ul>
-  <a href="https://<YOUR_URL>/order/{{ order.id | remove: 'gid://shopify/Order/' }}">📥 Click here to download your files!</a>
-</div>
-{% endif %}
-```
-
-(Note: You can change 'DIGI' to any keyword you like. Just make sure only/all SKUs for digital products contain the string)
-
-### 🔹 AWS S3 Bucket
-
-- Upload your digital asset to S3.
-- Make sure the aws.secret.js file contains your credentials (bucket name, access keys, and region).
-- Add a new product to products.json in the data folder following the sample format.
-  The key for each product will be the variant ID, not the product ID, even for products without different variants.
+- Create a non-physical product and give it the tag 'digiful'.
+- Install the dijiful app on your store.
+- Setup S3 credentions in the Shopify dijiful admin.
 
 ## Usage
 
-```bash
-node server.js
-```
-
-Go to your Shop (set it to test mode) and make a purchase for a digital item. Be sure to enter your actual email in the email/phone number input field.
-You can add multiple items and even include physical products. Only digital products (those with "DIGI" in their SKUs) will be linked.
-
-Go to your email and click the link. `http://localhost:4199/order/<YOUR_ORDER_ID>`.
+- Purchase a digital product (marked by the 'digiful' tag) on your dev store with dijiful installed.
+- Open the email sent from digiful.click for the order.
+- Click the link to the customer download page.
+- On the download page, click the download button.
 
 ## Resources
 
-HMAC docs: https://nodejs.org/api/crypto.html#class-hmac
-
-## TODO
-
-@TODO - Provide different instructions for public apps and custom apps
+- 🔗 - [MongoDB](https://www.mongodb.com/docs/manual/installation/)
+- 🔗 - [Getting started with Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/GetStartedWithS3.html)
+- 🔗 - [HMAC docs](https://nodejs.org/api/crypto.html#class-hmac)
