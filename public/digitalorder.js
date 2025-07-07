@@ -1,16 +1,37 @@
 const orderId = location.pathname.split("/").pop();
 const urlsList = document.getElementById("urls-list");
 const pageTitle = document.getElementById("page-title");
-const orderNumberText = document.createElement("span");
 const basePath = document.querySelector("base")?.href;
-pageTitle.appendChild(orderNumberText);
+const orderNumberText = document.getElementById("order-number-text");
 orderNumberText.innerHTML = `Order #${orderId}`;
-fetch(`${basePath}/api/getsignedorderurls/${orderId}`)
+
+const createReadableDisplaySize = (s) => {
+  const isOnlyDigits = /^\d+$/.test(s);
+  if (!isOnlyDigits) return "(unknown)"; // don't return NaN.
+  const size = parseInt(s);
+  if (s < 1000) {
+    return `${size.toFixed(1)} bytes`;
+  } else if (size < 1_000_000) {
+    return `${(size / 1000).toFixed(1)} KB`;
+  } else if (size < 1_000_000_000) {
+    return `${(size / 1_000_000).toFixed(1)} MB`;
+  } else {
+    // GB is the maximum unit.
+    return `${(s / 1_000_000_000).toFixed(1)} GB`;
+  }
+};
+
+fetch(`/api/getsignedorderurls/${orderId}`)
   .then((r) => r.json())
-  .then(({ urls }) => {
-    urls.forEach((u) => {
+  .then(({ products }) => {
+    products.forEach((p) => {
       const li = document.createElement("li");
-      li.innerHTML = `<a href="${u}" alt="${u}">Download - ${u}</a>`;
+      li.innerHTML = `<h3>${
+        p.title
+      }</h3><ul><li>Size: ${createReadableDisplaySize(
+        p.size
+      )}</li><li>Version: ${p.version}.0</li>
+      <li><a href="${p.url}" alt="${p.title}">Download</a></li></ul>`;
       urlsList.appendChild(li);
     });
   })

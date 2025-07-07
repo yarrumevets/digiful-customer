@@ -66,7 +66,7 @@ main {
   background-color: #333;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   width: 100%;
   margin: 0;
@@ -100,4 +100,13 @@ footer {
 }
 #welcome-message h2 {
   margin-bottom: 1vw;
+}
+
+#order-number-text {
+  width: 100%;
+  background-color: #222;
+  text-align: center;
+  padding-top: 2vw;
+  padding-bottom: 2vw;
+  color: #eee;
 }
