@@ -1,4 +1,4 @@
-# 🛍️ Dijiful-Customer
+# 🛍️ Digiful-Customer
 
 - Customer digital product fulfillment side of the Digiful Shopify app.
 
@@ -28,7 +28,7 @@
 
 ## Features
 
-- Captures customer checkout for digital products purchased on Shopify stores that have installed the dijiful app.
+- Captures customer checkout for digital products purchased on Shopify stores that have installed the digiful app.
 - Send an email/SMS to customers with a link to the download page for the digital products they purchased
 - Verifies customers via a hash lookup for an oder and serverse up a file via a signed url to an S3 bucket
 - Captures various stats that cannot be gathered in Shopify directly. (TBD)
@@ -43,8 +43,8 @@ TBD
 Step-by-step instructions on how to get the development environment running.
 
 ```bash
-git clone https://github.com/yarrumevets/dijiful-customer.git
-cd dijiful-customer
+git clone https://github.com/yarrumevets/digiful-customer.git
+cd digiful-customer
 yarn
 ```
 
@@ -68,9 +68,9 @@ yarn
 - Install and run [Ngrok](https://ngrok.com) for the Shopify webhook:
   `ngrok http 4199`
 
-### 🔹 dijiful admin
+### 🔹 digiful admin
 
-- Run the [dijiful](https://github.com/yarrumevets/digiful) admin app locally and set it up as per the README.md instructions.
+- Run the [digiful](https://github.com/yarrumevets/digiful) admin app locally and set it up as per the README.md instructions.
 
 ### 🔹 MongoDB
 
@@ -83,12 +83,12 @@ Setup an S3 bucket on AWS - [Getting started with Amazon S3](https://docs.aws.am
 ### 🔹 Shopify
 
 - Create a non-physical product and give it the tag 'digiful'.
-- Install the dijiful app on your store.
-- Setup S3 credentions in the Shopify dijiful admin.
+- Install the digiful app on your store.
+- Setup S3 credentions in the Shopify digiful admin.
 
 ## Usage
 
-- Purchase a digital product (marked by the 'digiful' tag) on your dev store with dijiful installed.
+- Purchase a digital product (marked by the 'digiful' tag) on your dev store with digiful installed.
 - Open the email sent from digiful.click for the order.
 - Click the link to the customer download page.
 - On the download page, click the download button.

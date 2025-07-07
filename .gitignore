@@ -7,9 +7,8 @@ node_modules/
 *.log
 .env
 
+*.secret.js
 aws.secret.js
 shopify.secret.js
-data/products.json
-data/logs.json
+
 data/orders.json
-public/config.js

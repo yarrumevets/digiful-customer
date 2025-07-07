@@ -2,9 +2,13 @@
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.832.0",
+    "@aws-sdk/client-ses": "^3.840.0",
     "@aws-sdk/s3-request-presigner": "^3.832.0",
+    "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "graphql": "^16.11.0",
-    "graphql-request": "^7.2.0"
+    "graphql-request": "^7.2.0",
+    "mongodb": "^6.17.0",
+    "nanoid": "^5.1.5"
   }
 }
