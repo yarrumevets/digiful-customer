@@ -1,4 +1,4 @@
-# 🛍️ Digiful-Customer
+# 🛍️ digiful-customer
 
 - Customer digital product fulfillment side of the Digiful Shopify app.
 
@@ -15,7 +15,7 @@
 
 ## Introduction
 
-- Customer digital product fulfillment side of the Digiful Shopify app.
+- Customer digital product fulfillment side of the [digiful Shopify app](https://github.com/yarrumevets/digiful).
 
 ## Tech
 

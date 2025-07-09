@@ -9,6 +9,7 @@ node_modules/
 
 *.secret.js
 aws.secret.js
-shopify.secret.js
 
 data/orders.json
+public/config.js
+public/favicon.ico
