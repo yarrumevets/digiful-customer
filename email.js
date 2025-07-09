@@ -1,6 +1,7 @@
 // Send email via AWS SES
 // Docs: https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/ses/command/SendEmailCommand/
 
+import "dotenv/config";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 // Configure AWS SES credentials
