@@ -1,3 +1,4 @@
-window.CONFIG = {
-  companyName: "Your Shop Name",
+window.config = {
+  // Whitelabelling
+  pageTitle: "( Your Page Title Here )",
 };
