@@ -4,6 +4,7 @@ const pageTitle = document.getElementById("page-title");
 const basePath = document.querySelector("base")?.href;
 const orderNumberText = document.getElementById("order-number-text");
 orderNumberText.innerHTML = `Order #${orderId}`;
+const errorText = document.getElementById("error-text");
 
 const createReadableDisplaySize = (s) => {
   const isOnlyDigits = /^\d+$/.test(s);
@@ -35,4 +36,8 @@ fetch(`/api/getsignedorderurls/${orderId}`)
       urlsList.appendChild(li);
     });
   })
-  .catch(() => (document.body.textContent = "Error loading files"));
+  .catch((error) => {
+    errorText.innerHTML =
+      "Error loading files - Refresh the page or try again later.";
+    console.error("Error loading file files: ", error);
+  });

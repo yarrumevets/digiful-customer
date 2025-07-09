@@ -110,3 +110,18 @@ footer {
   padding-bottom: 2vw;
   color: #eee;
 }
+
+/* digitalorder page */
+#error-section {
+  background-color: yellow;
+  width: 100%;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid red;
+  border-bottom: 1px solid red;
+}
+#error-text {
+  color: red;
+}
