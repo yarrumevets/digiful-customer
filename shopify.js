@@ -1,5 +1,5 @@
+import "dotenv/config";
 import crypto from "crypto";
-import shopifyConfig from "./shopify.secret.js";
 
 // HMAC (Hash-based Message Authentication Code)
 // Verifies data integrity and authenticity using a shared secret key and a hash function.
@@ -10,7 +10,7 @@ function verifyShopifyWebhook(rawBody, reqHeaders) {
     return false;
   }
   const digest = crypto
-    .createHmac("sha256", shopifyConfig.shopifyHmacSecret)
+    .createHmac("sha256", process.env.SHOPIFY_HMAC_SECRET)
     .update(rawBody)
     .digest("base64");
   return crypto.timingSafeEqual(
