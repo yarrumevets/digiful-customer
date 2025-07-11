@@ -34,6 +34,32 @@ const LOGS_COLLECTION = process.env.LOGS_COLLECTION;
 const mongoClient = await mongoClientPromise;
 const db = mongoClient.db(DB_NAME);
 
+// Webhook mandatory for approval
+app.post(
+  "/webhooks/customer-data-request",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    console.log(`Webhook hit: customer-data-request`);
+    res.sendStatus(200);
+  }
+);
+app.post(
+  "/webhooks/customer-data-erasure",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    console.log(`Webhook hit: customer-data-erasure`);
+    res.sendStatus(200);
+  }
+);
+app.post(
+  "/webhooks/shop-data-erasure",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    console.log(`Webhook hit: shop-data-erasure`);
+    res.sendStatus(200);
+  }
+);
+
 // Webhook called by Shopify when an order is paid.
 app.post(
   "/webhooks/orders-paid",
@@ -127,11 +153,9 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
   for (const vIndex in orderData.variantIds) {
     const variantId = orderData.variantIds[vIndex].toString();
     // Get variant data
-    const variantData = await db
-      .collection(VARIANTS_COLLECTION)
-      .findOne({
-        shopifyVariantId: `gid://shopify/ProductVariant/${variantId}`,
-      });
+    const variantData = await db.collection(VARIANTS_COLLECTION).findOne({
+      shopifyVariantId: `gid://shopify/ProductVariant/${variantId}`,
+    });
     // Get product data
 
     console.log("vid: ", variantId, " --------- variant data: ", variantData);
