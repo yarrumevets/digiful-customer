@@ -187,6 +187,7 @@ app.get("/download/:code", async (req, res) => {
     "Content-Disposition",
     `attachment; filename="${originalFilePath}"`
   );
+  res.setHeader("Content-Type", "application/octet-stream");
   res.redirect(signedUrl);
 });
 
