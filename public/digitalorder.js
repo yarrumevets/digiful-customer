@@ -32,7 +32,9 @@ fetch(`/api/getsignedorderurls/${orderId}`)
       }</h3><ul><li>Size: ${createReadableDisplaySize(
         p.size
       )}</li><li>Version: ${p.version}.0</li>
-      <li><a href="${p.url}" alt="${p.title}">Download</a></li></ul>`;
+      <li><a href="#" onClick="event.preventDefault(); window.location.href='${
+        p.url
+      }'" alt="${p.title}">Download</a></li></ul>`;
       urlsList.appendChild(li);
     });
   })
