@@ -183,12 +183,11 @@ app.get("/download/:code", async (req, res) => {
     createdAt: new Date(),
     // ...@TODO add more relevant details: prod ID, merch ID, etc.
   });
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="${originalFilePath}"`
-  );
+
+  // Set headers to force download.
+  res.setHeader("Content-Disposition", `attachment; filename="${Key}"`);
   res.setHeader("Content-Type", "application/octet-stream");
-  res.redirect(signedUrl);
+  data.Body.pipe(res);
 });
 
 // Basic server stuff:
