@@ -168,7 +168,7 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
 // Use a code endpoint that doesn't expose the S3 URL directly.
 app.get("/download/:code", async (req, res) => {
   const littleSlug = req.params.code;
-  const fileInfo = slug[littleSlug];
+  const fileInfo = slugMap[littleSlug];
   const signedUrl = fileInfo.signedUrl;
   const variantId = fileInfo.variantId;
   const originalFilePath = fileInfo.originalFilePath;
