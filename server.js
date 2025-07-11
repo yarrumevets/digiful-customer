@@ -184,7 +184,8 @@ app.get("/download/:code", async (req, res) => {
     // ...@TODO add more relevant details: prod ID, merch ID, etc.
   });
   res.setHeader(
-    `Content-Disposition", "attachment; filename=${originalFilePath}`
+    "Content-Disposition",
+    `attachment; filename="${originalFilePath}"`
   );
   res.redirect(signedUrl);
 });
