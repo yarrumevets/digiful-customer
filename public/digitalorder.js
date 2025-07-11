@@ -27,12 +27,14 @@ fetch(`/api/getsignedorderurls/${orderId}`)
   .then(({ products }) => {
     products.forEach((p) => {
       const li = document.createElement("li");
-li.innerHTML = `<h3>${p.title}</h3>
-<ul>
-  <li>Size: ${createReadableDisplaySize(p.size)}</li>
-  <li>Version: ${p.version}.0</li>
-  <li><a href="/download/${p.code}" alt="${p.title}">Download</a></li>
-</ul>`;
+      li.innerHTML = `
+        <h3>${p.title}</h3>
+        <ul>
+          <li>Size: ${createReadableDisplaySize(p.size)}</li>
+          <li>Version: ${p.version}.0</li>
+          <li><a href="/download/${p.code}" alt="${p.title}">Download</a></li>
+        </ul>`;
+    });
   })
   .catch((error) => {
     errorText.classList.remove("hidden");
