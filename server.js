@@ -40,6 +40,7 @@ app.post(
   express.raw({ type: "application/json" }),
   async (req, res) => {
     console.log(`\x1b[32m🎉 An order was placed! 🎉\x1b[0m`);
+    res.sendStatus(200);
     const shopDomain = req.get("x-shopify-shop-domain");
     const rawBody = req.body;
     let body;
@@ -87,7 +88,6 @@ app.post(
     };
 
     sendEmail(emailParams);
-    res.sendStatus(200);
   }
 );
 
