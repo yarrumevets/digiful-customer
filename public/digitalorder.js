@@ -37,6 +37,7 @@ fetch(`/api/getsignedorderurls/${orderId}`)
     });
   })
   .catch((error) => {
+    errorText.classList.remove("hidden");
     errorText.innerHTML =
       "Error loading files - Refresh the page or try again later.";
     console.error("Error loading file files: ", error);

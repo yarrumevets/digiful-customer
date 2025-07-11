@@ -185,6 +185,7 @@ app.get("/download/:code", async (req, res) => {
     // ...@TODO add more relevant details.
   });
 
+  res.setHeader(`Content-Disposition", "attachment; filename=${filePath}`);
   res.redirect(signedUrl);
 });
 

@@ -125,3 +125,7 @@ footer {
 #error-text {
   color: red;
 }
+
+.hidden {
+  display: none !important;
+}

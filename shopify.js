@@ -3,7 +3,7 @@ import crypto from "crypto";
 
 // HMAC (Hash-based Message Authentication Code)
 // Verifies data integrity and authenticity using a shared secret key and a hash function.
-function verifyShopifyWebhook(rawBody, reqHeaders) {
+const verifyShopifyWebhook = (rawBody, reqHeaders) {
   const hmac = reqHeaders["x-shopify-hmac-sha256"];
   if (!hmac) {
     console.error("NO HMAC header.");
