@@ -129,7 +129,9 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
     // Get variant data
     const variantData = await db
       .collection(VARIANTS_COLLECTION)
-      .findOne({ shopifyVariantId: variantId });
+      .findOne({
+        shopifyVariantId: `gid://shopify/ProductVariant/${variantId}`,
+      });
     // Get product data
 
     console.log("vid: ", variantId, " --------- variant data: ", variantData);
