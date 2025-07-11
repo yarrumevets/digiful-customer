@@ -18,8 +18,7 @@ const SERVER_PORT = process.env.SERVER_PORT;
 const app = express();
 app.use(express.static("public"));
 
-const urlSlugMap = {};
-const slugVariantIdMap = {};
+const slugMap = {};
 
 const S3_BUCKET = "" + process.env.S3_BUCKET;
 const S3_ACCESS_KEY = "" + process.env.S3_ACCESS_KEY;
@@ -50,7 +49,6 @@ app.post(
     }
     console.log("Webhook request verified...");
     const publicOrderId = nanoid(24); // used in email links
-
     body = JSON.parse(rawBody.toString("utf-8"));
     const orderInfo = {
       orderId: String(body.id),
@@ -65,7 +63,6 @@ app.post(
       variantIds: body.line_items.map((item) => String(item.variant_id)),
       createdAt: new Date(),
     };
-
     // Save order.
     const insertOrderRes = await db
       .collection(ORDERS_COLLECTION)
@@ -112,7 +109,6 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
   let bucket, accessKey, secretAccessKey, region;
   if (merchantData.plan?.planName === "SelfHosting") {
     // @TODO: store plan data in DB for cross service sync.
-
     accessKey = merchantData.s3.s3AccessKeyId;
     secretAccessKey = decrypt(merchantData.s3.s3SecretAccessKey);
     bucket = merchantData.s3.s3BucketName;
@@ -140,21 +136,21 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
       .findOne({ shopifyProductId: variantData.shopifyProductId });
     // S3
     const filePath = variantData.file.name;
+    const originalFilePath = variantData.file.originalName;
     if (!filePath) {
       return res.status(500).send("System error: Cannot find file path.");
     }
-    const s3Url = await getS3ProductUrl(s3Client, filePath, bucket);
-    if (!s3Url) {
+    const signedUrl = await getS3ProductUrl(s3Client, filePath, bucket);
+    if (!signedUrl) {
       return res.status(500).send("System error: Cannot generate signed URL.");
     }
     const fvh = variantData.fileVersionHistory;
     const currentVersion = fvh.length;
-    // Add the slug:s3url to in-memory map for the time specified in config.js.
+    // Add the slug:signedUrl to in-memory map for the time specified in config.js.
     const littleSlug = createLittleSlug();
-    urlSlugMap[littleSlug] = s3Url;
-    slugVariantIdMap[littleSlug] = variantId; // @TODO: assign object with merchantId, productId as well.
+    slugMap[littleSlug] = { signedUrl, variantId, originalFilePath }; // @TODO: add merchantId and productId.
     setTimeout(() => {
-      delete urlSlugMap[littleSlug];
+      delete slugMap[littleSlug];
     }, msUrlTimeout);
     products.push({
       url: `/download/${littleSlug}`,
@@ -163,6 +159,7 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
       filePath,
       size: fvh[currentVersion - 1].file.size, // bytes
       version: currentVersion,
+      originalFilePath,
     });
   }
   res.status(200).json({ products: products });
@@ -171,8 +168,10 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
 // Use a code endpoint that doesn't expose the S3 URL directly.
 app.get("/download/:code", async (req, res) => {
   const littleSlug = req.params.code;
-  const signedUrl = urlSlugMap[littleSlug]; // your DB lookup
-  const variantId = slugVariantIdMap[littleSlug];
+  const fileInfo = slug[littleSlug];
+  const signedUrl = fileInfo.signedUrl;
+  const variantId = fileInfo.variantId;
+  const originalFilePath = fileInfo.originalFilePath;
   // log download to db.
   db.collection(LOGS_COLLECTION).insertOne({
     event: "download",
@@ -182,10 +181,11 @@ app.get("/download/:code", async (req, res) => {
     littleSlug,
     signedUrlGzip: gzipSync(signedUrl).toString("base64"), // gunzipSync(Buffer.from(signedUrlGzip, 'base64')).toString();
     createdAt: new Date(),
-    // ...@TODO add more relevant details.
+    // ...@TODO add more relevant details: prod ID, merch ID, etc.
   });
-
-  res.setHeader(`Content-Disposition", "attachment; filename=${filePath}`);
+  res.setHeader(
+    `Content-Disposition", "attachment; filename=${originalFilePath}`
+  );
   res.redirect(signedUrl);
 });
 
