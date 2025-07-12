@@ -28,11 +28,17 @@ footer {
 
 header {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: row;
   align-items: center;
   color: #222;
   background-color: white;
   width: 100%;
+}
+
+header img {
+  width: 80vw;
 }
 
 header h1#page-title {
@@ -66,7 +72,7 @@ main {
   background-color: #333;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
   margin: 0;
@@ -102,13 +108,28 @@ footer {
   margin-bottom: 1vw;
 }
 
-#order-number-text {
+#welcome-message-text {
+  font-size: 2.4vw;
   width: 100%;
   background-color: #222;
   text-align: center;
   padding-top: 2vw;
   padding-bottom: 2vw;
   color: #eee;
+}
+
+#order-number-text {
+  font-size: 1.4vw;
+  width: 50vw;
+  background-color: #222;
+  text-align: center;
+  margin: 3vw auto;
+  height: 4.6vw;
+  color: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 2.3vw;
 }
 
 /* digitalorder page */

@@ -3,7 +3,7 @@ const urlsList = document.getElementById("urls-list");
 const pageTitle = document.getElementById("page-title");
 const basePath = document.querySelector("base")?.href;
 const orderNumberText = document.getElementById("order-number-text");
-orderNumberText.innerHTML = `Order #${orderId}`;
+orderNumberText.innerHTML = `Order: ${orderId}`;
 const errorText = document.getElementById("error-text");
 
 const createReadableDisplaySize = (s) => {
