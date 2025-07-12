@@ -23,16 +23,14 @@ const sendEmail = async (params) => {
     Message: {
       Subject: { Data: params.subject, Charset: "UTF-8" },
       Body: {
-        Text: { Data: params.bodyHtml, Charset: "UTF-8" },
-        Html: { Data: params.bodyText, Charset: "UTF-8" },
+        Html: { Data: params.bodyHtml, Charset: "UTF-8" },
+        Text: { Data: params.bodyText, Charset: "UTF-8" },
       },
     },
   };
-
-  console.log("=====> formatted params: ", formattedParams);
-
   const command = new SendEmailCommand(formattedParams);
   const data = await sesClient.send(command);
+  // @TODO - create log here, or return log object.
   return data.MessageId;
 };
 
