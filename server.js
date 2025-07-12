@@ -40,7 +40,11 @@ app.post(
   express.raw({ type: "application/json" }),
   async (req, res) => {
     console.log(`Webhook hit: customer-data-request`);
-    res.sendStatus(200);
+    if (!verifyShopifyWebhook(req.body, req.headers)) {
+      console.error(`Webhook not verified: `, req.body);
+      return res.sendStatus(401);
+    }
+    return res.sendStatus(200);
   }
 );
 app.post(
@@ -48,7 +52,11 @@ app.post(
   express.raw({ type: "application/json" }),
   async (req, res) => {
     console.log(`Webhook hit: customer-data-erasure`);
-    res.sendStatus(200);
+    if (!verifyShopifyWebhook(req.body, req.headers)) {
+      console.error(`Webhook not verified: `, req.body);
+      return res.sendStatus(401);
+    }
+    return res.sendStatus(200);
   }
 );
 app.post(
@@ -56,7 +64,11 @@ app.post(
   express.raw({ type: "application/json" }),
   async (req, res) => {
     console.log(`Webhook hit: shop-data-erasure`);
-    res.sendStatus(200);
+    if (!verifyShopifyWebhook(req.body, req.headers)) {
+      console.error(`Webhook not verified: `, req.body);
+      return res.sendStatus(401);
+    }
+    return res.sendStatus(200);
   }
 );
 
@@ -70,10 +82,13 @@ app.post(
     const shopDomain = req.get("x-shopify-shop-domain");
     const rawBody = req.body;
     let body;
+
     if (!verifyShopifyWebhook(rawBody, req.headers)) {
-      console.error("Webhook not verified: ", rawBody);
-      return res.sendStatus(200);
+      console.error(`Webhook not verified: `, req.body);
+      return res.sendStatus(401);
     }
+    res.sendStatus(200);
+
     console.log("Webhook request verified...");
     const publicOrderId = nanoid(24); // used in email links
     body = JSON.parse(rawBody.toString("utf-8"));
