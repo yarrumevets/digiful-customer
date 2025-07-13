@@ -132,10 +132,12 @@ app.post(
     const publicOrderId = nanoid(24); // used in email links
     body = JSON.parse(rawBody.toString("utf-8"));
 
-    console.log("BODY: ", body);
+    //Get the numeric shop id.
+    const shopId = admin_graphql_api_id.split("/").pop();
 
     const orderInfo = {
       orderId: String(body.id),
+      shopId: String(shopId),
       orderNumber: String(body.order_number),
       publicOrderId,
       customer: {
@@ -198,8 +200,6 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
     console.error("Order not found: ", publicOrderId, " - ", orderData);
     return res.status(404).send({ error: "Order not found!" });
   }
-
-  console.log("shopid: ", orderData, "\n\n\n shopId: ", orderData.shopId);
 
   const merchantData = await db
     .collection(MERCHANTS_COLLECTION)
