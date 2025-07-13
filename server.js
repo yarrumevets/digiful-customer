@@ -133,7 +133,7 @@ app.post(
     body = JSON.parse(rawBody.toString("utf-8"));
 
     //Get the numeric shop id.
-    const shopId = admin_graphql_api_id.split("/").pop();
+    const shopId = body.admin_graphql_api_id.split("/").pop();
 
     const orderInfo = {
       orderId: String(body.id),
