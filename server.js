@@ -128,11 +128,12 @@ app.post(
     }
     res.sendStatus(200);
 
-    console.log("BODY: ", body);
-
     console.log("Webhook request verified...");
     const publicOrderId = nanoid(24); // used in email links
     body = JSON.parse(rawBody.toString("utf-8"));
+
+    console.log("BODY: ", body);
+
     const orderInfo = {
       orderId: String(body.id),
       orderNumber: String(body.order_number),
