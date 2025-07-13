@@ -132,6 +132,8 @@ app.post(
     const publicOrderId = nanoid(24); // used in email links
     body = JSON.parse(rawBody.toString("utf-8"));
 
+    console.log("B O D Y : ", body);
+
     //Get the numeric shop id.
     const shopId = body.admin_graphql_api_id.split("/").pop();
 
