@@ -201,9 +201,12 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
     return res.status(404).send({ error: "Order not found!" });
   }
 
+  console.log("***** orderdata: ", orderdata);
+
   const merchantData = await db
     .collection(MERCHANTS_COLLECTION)
     .findOne({ shopId: orderData.shopId });
+
   console.log("merchant data: ", merchantData);
   console.log("order data: ", orderData);
   // S3
