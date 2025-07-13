@@ -201,7 +201,7 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
     return res.status(404).send({ error: "Order not found!" });
   }
 
-  console.log("***** orderdata: ", orderdata);
+  console.log("***** orderdata: ", orderData);
 
   const merchantData = await db
     .collection(MERCHANTS_COLLECTION)
