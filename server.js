@@ -132,10 +132,14 @@ app.post(
     const publicOrderId = nanoid(24); // used in email links
     body = JSON.parse(rawBody.toString("utf-8"));
 
-    console.log("B O D Y : ", body);
+    // Grab the first line item to get the variant id. Use it to get the storeId, then merchant.
+    const refVariantId = body.line_items[0].variant_id; // numeric value.
+    const refVariant = await db.collection(VARIANTS_COLLECTION).findOne({
+      shopifyVariantId: `gid://shopify/ProductVariant/${refVariantId}`,
+    });
+    const shopId = refVariant.shopId;
 
-    //Get the numeric shop id.
-    const shopId = body.admin_graphql_api_id.split("/").pop();
+    console.log("Shop ID found: ", shopId, " ...");
 
     const orderInfo = {
       orderId: String(body.id),
