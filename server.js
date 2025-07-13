@@ -180,11 +180,13 @@ app.get("/api/test-email/:emailTestCode", async (req, res) => {
 
 // Customer order file URL(s) lookup
 app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
+  console.log("api/getsignedorderurls....");
+
+  console.log("REQ params: ", req.params);
+
   const products = [];
   const publicOrderId = req.params.publicOrderId;
-
   console.log("Looking up order by public order ID: ", publicOrderId, " ...");
-
   // Get order data from DB.
   const orderData = await db
     .collection(ORDERS_COLLECTION)
@@ -193,14 +195,11 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
     console.error("Order not found: ", publicOrderId, " - ", orderData);
     return res.status(404).send({ error: "Order not found!" });
   }
-
   const merchantData = await db
     .collection(MERCHANTS_COLLECTION)
     .findOne({ shopId: orderData.shopId });
-
   console.log("merchant data: ", merchantData);
   console.log("order data: ", orderData);
-
   // S3
   let bucket, accessKey, secretAccessKey, region;
   if (merchantData.plan?.planName === "SelfHosting") {
@@ -227,9 +226,7 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
       shopifyVariantId: `gid://shopify/ProductVariant/${variantId}`,
     });
     // Get product data
-
     console.log("vid: ", variantId, " --------- variant data: ", variantData);
-
     const productData = await db
       .collection(PRODUCTS_COLLECTION)
       .findOne({ shopifyProductId: variantData.shopifyProductId });
