@@ -301,6 +301,30 @@ app.get("/download/:code", async (req, res) => {
   res.redirect(signedUrl);
 });
 
+app.get("/privacy", (req, res) => {
+  res.sendFile(__dirname + "/public/privacy.html");
+});
+
+app.get("/tos", (req, res) => {
+  res.sendFile(__dirname + "/public/tos.html");
+});
+
+app.get("/changelog", (req, res) => {
+  res.sendFile(__dirname + "/public/changelog.html");
+});
+
+app.get("/faq", (req, res) => {
+  res.sendFile(__dirname + "/public/faq.html");
+});
+
+app.get("/pricing", (req, res) => {
+  res.sendFile(__dirname + "/public/pricing.html");
+});
+
+app.get("/tutorial", (req, res) => {
+  res.sendFile(__dirname + "/public/tutorial.html");
+});
+
 // Basic server stuff:
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.get("/order/:publicOrderId", (req, res) =>
