@@ -73,6 +73,7 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  gap: 2vw;
   align-items: center;
   width: 100%;
   margin: 0;
@@ -132,6 +133,21 @@ footer {
   border-radius: 2.3vw;
 }
 
+#main-page-links {
+  width: 80vw;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.video-wrapper {
+  width: 100%;
+  background-color: #111;
+  display: flex;
+  justify-content: center;
+  padding: 2vw 0;
+}
+
 /* digitalorder page */
 #error-section {
   background-color: yellow;
@@ -149,4 +165,34 @@ footer {
 
 .hidden {
   display: none !important;
+}
+
+/* FAQ page */
+
+#faq-list {
+  margin-top: 4vw;
+  width: 70vw;
+  display: flex;
+  flex-direction: column;
+  gap: 2vw;
+}
+
+#faq-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vw;
+}
+
+.faq-question {
+  font-weight: bolder;
+}
+.faq-question::before {
+  content: "Q : ";
+}
+.faq-answer {
+  padding-left: 1vw;
+}
+.faq-answer::before {
+  content: "A - ";
+  font-weight: bolder;
 }

@@ -8,13 +8,47 @@
   <body>
     <header>
       <img src="/images/digiful-banner.png" alt="digiful banner image" />
-      <h1 id="page-title">Digiful</h1>
+      <h1 id="page-title"></h1>
     </header>
     <main>
-      <h2 id="welcome-message-text">Digiful -</h2>
+      <h2 id="welcome-message-text">Digiful - FAQ</h2>
       <section id="welcome-message">
         <h2></h2>
-        <p></p>
+        <ul id="faq-list">
+          <li>
+            <p class="faq-question">What does digiful do for my shop?</p>
+            <p class="faq-answer">
+              Digijul solves the problem of fulfillment, storage, communication, and shop integration of your digital products.
+              <ul>
+                <li>Communication &amp; fulfillment: Customers receive an email upon checkout with a secure link to the download page.</li>
+                <li>Storage: Files are securely hosted on Amazon's AWS S3 storage.</li>
+                <li>Shop integration: A simple form allows your to add a new product to your shop, make it active, and upload the file for hosting, all in one step.</li>
+              </ul>
+            </p>
+          </li>
+          <li>
+            <p class="faq-question">How can I change subscriptions?</p>
+            <p class="faq-answer">
+              Unsubscribe from the Settings page in the admin app. Then select a
+              different subscription.
+            </p>
+          </li>
+          <li>
+            <p class="faq-question">How does the self hosting plan work?</p>
+            <p class="faq-answer">
+              Self hosting requires you to setup your own bucket in AWS S3, and
+              generate limited-scope credentials for that bucket. Next you'll
+              fill out S3 credentials form on the Settings page of the app. Your
+              secret key will be encrypted while stored.
+            </p>
+          </li>
+          <li>
+            <p class="faq-question">Is there any way to know which files in my shop were created by digiful?</p>
+            <p class="faq-answer">
+              Yes. Every product created by dijiful gets the tag 'digiful' applied to it.
+            </p>
+          </li>
+        </ul>
       </section>
     </main>
     <footer>
