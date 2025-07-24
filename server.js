@@ -1,10 +1,10 @@
+import "./loadenv.js";
 import express from "express";
 import { getS3ProductUrl, createS3Client } from "./s3.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { verifyShopifyWebhook } from "./shopify.js";
 import { mongoClientPromise } from "./mongoclient.js";
-import "dotenv/config";
 import { addOrder } from "./json.js";
 import { nanoid } from "nanoid";
 import { encrypt, decrypt, createLittleSlug } from "./encrypt.js";
@@ -111,6 +111,11 @@ const composeEmailParams = (toEmail, publicOrderId) => {
     bodyText: `${config.emailTitle}\n\nDownload here: ${process.env.BASE_URL}/order/${publicOrderId}`,
   };
 };
+
+// Health check (provides VM ID)
+app.get("/health", (req, res) => {
+  res.json({ vmId: process.env.VM_ID });
+});
 
 // Webhook called by Shopify when an order is paid.
 app.post(
