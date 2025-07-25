@@ -117,6 +117,8 @@ app.get("/health", (req, res) => {
   res.json({ vmId: process.env.VM_ID });
 });
 
+// @TODO: move webhooks to a queue ?
+
 // Webhook called by Shopify when an order is paid.
 app.post(
   "/webhooks/orders-paid",
@@ -128,12 +130,12 @@ app.post(
     let body;
 
     if (!verifyShopifyWebhook(rawBody, req.headers)) {
-      console.error(`Webhook not verified: `, req.body);
+      console.error(`Webhook orders-paid not verified: `, req.body);
       return res.sendStatus(401);
     }
     res.sendStatus(200);
 
-    console.log("Webhook request verified...");
+    console.log("Webhook orders-paid request verified...");
     const publicOrderId = nanoid(24); // used in email links
     body = JSON.parse(rawBody.toString("utf-8"));
 
@@ -176,6 +178,33 @@ app.post(
     }
     const emailParams = composeEmailParams(body.customer?.email, publicOrderId);
     sendEmail(emailParams);
+  }
+);
+
+// Webhook called by Shopify when a subscription changes.
+app.post(
+  "/webhooks/app-subscriptions-update",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    console.log(`⚠️ A subscription was changed! ⚠️`);
+    const shopDomain = req.get("x-shopify-shop-domain");
+    const rawBody = req.body;
+    let body;
+
+    if (!verifyShopifyWebhook(rawBody, req.headers)) {
+      console.error(
+        `Webhook app-subscriptions-update not verified: `,
+        req.body
+      );
+      return res.sendStatus(401);
+    }
+    res.sendStatus(200);
+
+    console.log("Webhook app-subscriptions-update request verified...");
+
+    body = JSON.parse(rawBody.toString("utf-8"));
+
+    console.log("WH body: ", body);
   }
 );
 
