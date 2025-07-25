@@ -190,7 +190,6 @@ app.post(
     const shopDomain = req.get("x-shopify-shop-domain");
     const rawBody = req.body;
     let body;
-
     if (!verifyShopifyWebhook(rawBody, req.headers)) {
       console.error(
         `Webhook app-subscriptions-update not verified: `,
@@ -199,11 +198,8 @@ app.post(
       return res.sendStatus(401);
     }
     res.sendStatus(200);
-
     console.log("Webhook app-subscriptions-update request verified...");
-
     body = JSON.parse(rawBody.toString("utf-8"));
-
     console.log("WH body: ", body);
   }
 );
