@@ -186,8 +186,45 @@ app.post(
   "/webhooks/app-subscriptions-update",
   express.raw({ type: "application/json" }),
   async (req, res) => {
-    console.log(`⚠️ A subscription was changed! ⚠️`);
     const shopDomain = req.get("x-shopify-shop-domain");
+    console.log(`⚠️ A subscription for (${shopDomain}) was changed! ⚠️`); // sample from a subscription sign-up:
+
+    // NEW SUBSCRIPTION:
+    // WH body:  {
+    //   app_subscription: {
+    //     admin_graphql_api_id: 'gid://shopify/AppSubscription/30198857973',
+    //     name: 'SelfHosting',
+    //     status: 'ACTIVE', // <-------------
+    //     admin_graphql_api_shop_id: 'gid://shopify/Shop/75350540533',
+    //     created_at: '2025-07-25T15:35:45-07:00', // <--------
+    //     updated_at: '2025-07-25T15:37:44-07:00', // <-------- diff
+    //     currency: 'CAD',
+    //     capped_amount: null,
+    //     price: '1.99',
+    //     interval: 'every_30_days',
+    //     plan_handle: null
+    //   }
+    // }
+
+    // CANCELLATION:
+    // ⚠️ A subscription was changed! ⚠️
+    //  Webhook app-subscriptions-update request verified...
+    //  WH body:  {
+    //    app_subscription: {
+    //      admin_graphql_api_id: 'gid://shopify/AppSubscription/30198857973',
+    //      name: 'SelfHosting',
+    //      status: 'CANCELLED', // <---------------------
+    //      admin_graphql_api_shop_id: 'gid://shopify/Shop/75350540533',
+    //      created_at: '2025-07-25T15:35:45-07:00',
+    //      updated_at: '2025-07-25T18:56:04-07:00',
+    //      currency: 'CAD',
+    //      capped_amount: null,
+    //      price: '1.99',
+    //      interval: 'every_30_days',
+    //      plan_handle: null
+    //    }
+    //  }
+
     const rawBody = req.body;
     let body;
     if (!verifyShopifyWebhook(rawBody, req.headers)) {
@@ -200,7 +237,38 @@ app.post(
     res.sendStatus(200);
     console.log("Webhook app-subscriptions-update request verified...");
     body = JSON.parse(rawBody.toString("utf-8"));
-    console.log("WH body: ", body);
+
+    // Store data in DB:
+    if (body.app_subscription) {
+      // @TODO: determine if this is best indicator
+    }
+
+    console.log("WEBHOOK app-subscriptions-update BODY: ", body);
+  }
+);
+
+// Webhook called by Shopify merchant uninstalls the app
+app.post(
+  "/webhooks/app-uninstalled",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    // @TODO: get sample data to put here . . . .
+
+    const shopDomain = req.get("x-shopify-shop-domain");
+    console.log(`⚠️ A merchant (${shopDomain}) uninstalled the app! ⚠️`);
+    const rawBody = req.body;
+    let body;
+    if (!verifyShopifyWebhook(rawBody, req.headers)) {
+      console.error(
+        `Webhook app-subscriptions-update not verified: `,
+        req.body
+      );
+      return res.sendStatus(401);
+    }
+    res.sendStatus(200);
+    console.log("Webhook app-uninstalled request verified...");
+    body = JSON.parse(rawBody.toString("utf-8"));
+    console.log("WEBHOOK app-uninstalled BODY: ", body);
   }
 );
 
