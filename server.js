@@ -3,28 +3,27 @@ import express from "express";
 import { getS3ProductUrl, createS3Client } from "./s3.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import { verifyShopifyWebhook } from "./shopify.js";
 import { mongoClientPromise } from "./mongoclient.js";
-import { addOrder } from "./json.js";
-import { nanoid } from "nanoid";
-import { encrypt, decrypt, createLittleSlug } from "./encrypt.js";
-import { sendEmail } from "./email.js";
+import { decrypt, createLittleSlug } from "./encrypt.js";
+import { emailTest } from "./email.js";
 import config from "./config.js";
 import { gzipSync } from "zlib"; // gunzipSync
-
+import {
+  genericWebhookHandler,
+  createWebhookAppUninstalled,
+  createWebhookOrdersPaid,
+  createWehookSubscriptionsUpdate,
+} from "./webhooks.js";
+// -------------------------------------------------------> Cutting down from 425 lines! <----------------
 const msUrlTimeout = config.URL_EXPIRY_MINUTES * 60 * 1000;
-
 const SERVER_PORT = process.env.SERVER_PORT;
 const app = express();
 app.use(express.static("public"));
-
 const slugMap = {};
-
 const S3_BUCKET = "" + process.env.S3_BUCKET;
 const S3_ACCESS_KEY = "" + process.env.S3_ACCESS_KEY;
 const S3_SECRET_ACCESS_KEY = "" + process.env.S3_SECRET_ACCESS_KEY;
 const S3_REGION = "" + process.env.S3_REGION;
-
 const DB_NAME = process.env.DB_NAME;
 const ORDERS_COLLECTION = process.env.ORDERS_COLLECTION;
 const PRODUCTS_COLLECTION = process.env.PRODUCTS_COLLECTION;
@@ -34,265 +33,33 @@ const LOGS_COLLECTION = process.env.LOGS_COLLECTION;
 const mongoClient = await mongoClientPromise;
 const db = mongoClient.db(DB_NAME);
 
-// Webhook mandatory for approval
-app.post(
-  "/webhooks/customer-data-request",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    console.log(`Webhook hit: customer-data-request`);
-    if (!verifyShopifyWebhook(req.body, req.headers)) {
-      console.error(`Webhook not verified: `, req.body);
-      return res.sendStatus(401);
-    }
-    return res.sendStatus(200);
+// Setup Webhook Handlers.
+["customer-data-request", "customer-data-erasure", "shop-data-erasure"].forEach(
+  (webhookRoute) => {
+    genericWebhookHandler(webhookRoute, app);
   }
 );
-app.post(
-  "/webhooks/customer-data-erasure",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    console.log(`Webhook hit: customer-data-erasure`);
-    if (!verifyShopifyWebhook(req.body, req.headers)) {
-      console.error(`Webhook not verified: `, req.body);
-      return res.sendStatus(401);
-    }
-    return res.sendStatus(200);
-  }
-);
-app.post(
-  "/webhooks/shop-data-erasure",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    console.log(`Webhook hit: shop-data-erasure`);
-    if (!verifyShopifyWebhook(req.body, req.headers)) {
-      console.error(`Webhook not verified: `, req.body);
-      return res.sendStatus(401);
-    }
-    return res.sendStatus(200);
-  }
-);
+createWebhookAppUninstalled(app);
+createWebhookOrdersPaid(app);
+createWehookSubscriptionsUpdate(app);
 
-// @TODO: Move into email module, passing in all fields.
-const composeEmailParams = (toEmail, publicOrderId) => {
-  return {
-    fromName: config.emailFromName,
-    fromEmail: config.emailFromAddress,
-    toEmail: toEmail,
-    subject: `Your digital product is ready from ${config.emailFromName}`,
-    bodyHtml: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8" />
-          <style>
-            body {
-              text-align: center;
-            }
-            h1 {
-              font-size:24px;
-              margin:0;
-              padding:0;
-            }
-            p {
-              font-size:16px;
-            }
-            img.banner {
-              width:100%;
-            }
-          </style>
-        </head>
-        <body>
-        <img class="banner" src="${config.emailBannerUrl}" />
-          <h1>${config.emailTitle}</h1>
-          <p><a href="${process.env.BASE_URL}/order/${publicOrderId}">Download your files here</a>.</p>
-        </body>
-      </html>
-      `,
-    bodyText: `${config.emailTitle}\n\nDownload here: ${process.env.BASE_URL}/order/${publicOrderId}`,
-  };
-};
-
-// Health check (provides VM ID)
+// Health check (Currently only used to get the VM ID)
 app.get("/health", (req, res) => {
   res.json({ vmId: process.env.VM_ID });
 });
 
-// @TODO: move webhooks to a queue ?
-
-// Webhook called by Shopify when an order is paid.
-app.post(
-  "/webhooks/orders-paid",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    console.log(`\x1b[32m🎉 An order was placed! 🎉\x1b[0m`);
-    const shopDomain = req.get("x-shopify-shop-domain");
-    const rawBody = req.body;
-    let body;
-
-    if (!verifyShopifyWebhook(rawBody, req.headers)) {
-      console.error(`Webhook orders-paid not verified: `, req.body);
-      return res.sendStatus(401);
-    }
-    res.sendStatus(200);
-
-    console.log("Webhook orders-paid request verified...");
-    const publicOrderId = nanoid(24); // used in email links
-    body = JSON.parse(rawBody.toString("utf-8"));
-
-    // Grab the first line item to get the variant id. Use it to get the storeId, then merchant.
-    const refVariantId = body.line_items[0].variant_id; // numeric value.
-    const refVariant = await db.collection(VARIANTS_COLLECTION).findOne({
-      shopifyVariantId: `gid://shopify/ProductVariant/${refVariantId}`,
-    });
-    const shopId = refVariant.shopId;
-
-    console.log("Shop ID found: ", shopId, " ...");
-
-    const orderInfo = {
-      orderId: String(body.id),
-      shopId: String(shopId),
-      orderNumber: String(body.order_number),
-      publicOrderId,
-      customer: {
-        customerId: String(body.customer?.id),
-        customerEmail: encrypt(body.customer?.email),
-      },
-      financialStatus: body.financial_status,
-      shopDomain, // identify the shop
-      variantIds: body.line_items.map((item) => String(item.variant_id)),
-      createdAt: new Date(),
-    };
-    // Save order.
-    const insertOrderRes = await db
-      .collection(ORDERS_COLLECTION)
-      .insertOne(orderInfo);
-    // Checkfor save success and backup to JSON on fail.
-    if (insertOrderRes?.acknowledged) {
-      console.log("New order saved to DB: ", insertOrderRes.insertedId);
-    } else {
-      console.error(
-        "Error saving order. Saving to JSON backup. Order data: ",
-        orderInfo
-      );
-      addOrder(orderInfo);
-    }
-    const emailParams = composeEmailParams(body.customer?.email, publicOrderId);
-    sendEmail(emailParams);
-  }
-);
-
-// Webhook called by Shopify when a subscription changes.
-app.post(
-  "/webhooks/app-subscriptions-update",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    const shopDomain = req.get("x-shopify-shop-domain");
-    console.log(`⚠️ A subscription for (${shopDomain}) was changed! ⚠️`); // sample from a subscription sign-up:
-
-    // NEW SUBSCRIPTION:
-    // WH body:  {
-    //   app_subscription: {
-    //     admin_graphql_api_id: 'gid://shopify/AppSubscription/30198857973',
-    //     name: 'SelfHosting',
-    //     status: 'ACTIVE', // <-------------
-    //     admin_graphql_api_shop_id: 'gid://shopify/Shop/75350540533',
-    //     created_at: '2025-07-25T15:35:45-07:00', // <--------
-    //     updated_at: '2025-07-25T15:37:44-07:00', // <-------- diff
-    //     currency: 'CAD',
-    //     capped_amount: null,
-    //     price: '1.99',
-    //     interval: 'every_30_days',
-    //     plan_handle: null
-    //   }
-    // }
-
-    // CANCELLATION:
-    // ⚠️ A subscription was changed! ⚠️
-    //  Webhook app-subscriptions-update request verified...
-    //  WH body:  {
-    //    app_subscription: {
-    //      admin_graphql_api_id: 'gid://shopify/AppSubscription/30198857973',
-    //      name: 'SelfHosting',
-    //      status: 'CANCELLED', // <---------------------
-    //      admin_graphql_api_shop_id: 'gid://shopify/Shop/75350540533',
-    //      created_at: '2025-07-25T15:35:45-07:00',
-    //      updated_at: '2025-07-25T18:56:04-07:00',
-    //      currency: 'CAD',
-    //      capped_amount: null,
-    //      price: '1.99',
-    //      interval: 'every_30_days',
-    //      plan_handle: null
-    //    }
-    //  }
-
-    const rawBody = req.body;
-    let body;
-    if (!verifyShopifyWebhook(rawBody, req.headers)) {
-      console.error(
-        `Webhook app-subscriptions-update not verified: `,
-        req.body
-      );
-      return res.sendStatus(401);
-    }
-    res.sendStatus(200);
-    console.log("Webhook app-subscriptions-update request verified...");
-    body = JSON.parse(rawBody.toString("utf-8"));
-
-    // Store data in DB:
-    if (body.app_subscription) {
-      // @TODO: determine if this is best indicator
-    }
-
-    console.log("WEBHOOK app-subscriptions-update BODY: ", body);
-  }
-);
-
-// Webhook called by Shopify merchant uninstalls the app
-app.post(
-  "/webhooks/app-uninstalled",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    // @TODO: get sample data to put here . . . .
-
-    const shopDomain = req.get("x-shopify-shop-domain");
-    console.log(`⚠️ A merchant (${shopDomain}) uninstalled the app! ⚠️`);
-    const rawBody = req.body;
-    let body;
-    if (!verifyShopifyWebhook(rawBody, req.headers)) {
-      console.error(
-        `Webhook app-subscriptions-update not verified: `,
-        req.body
-      );
-      return res.sendStatus(401);
-    }
-    res.sendStatus(200);
-    console.log("Webhook app-uninstalled request verified...");
-    body = JSON.parse(rawBody.toString("utf-8"));
-    console.log("WEBHOOK app-uninstalled BODY: ", body);
-  }
-);
-
+// API:
 // Send a test email
 app.get("/api/test-email/:emailTestCode", async (req, res) => {
-  // @TODO: create basic email templating to speed up testing.
-  const { emailTestCode } = req.params;
-  if (emailTestCode !== process.env.EMAIL_TEST_CODE) {
-    res.status(401).json({ error: "Unauthorized IP address" });
-  }
-  // Fake data
-  const publicOrderId = "ABC123ABC123ABC123ABC123";
-  const body = { customer: { email: process.env.TEST_TO_EMAIL } };
-  const emailParams = composeEmailParams(body.customer?.email, publicOrderId);
-  const emailResult = await sendEmail(emailParams);
-  res.status(200).send({ success: true, emailResult });
+  const testEmailResult = await emailTest(req.params.emailTestCode);
+  const statusCode = testEmailResult.success ? 200 : 401;
+  res.status(statusCode).send(testEmailResult);
 });
 
 // Customer order file URL(s) lookup
 app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
   console.log("api/getsignedorderurls....");
-
   console.log("REQ params: ", req.params);
-
   const products = [];
   const publicOrderId = req.params.publicOrderId;
   console.log("Looking up order by public order ID: ", publicOrderId, " ...");
@@ -304,13 +71,10 @@ app.get("/api/getsignedorderurls/:publicOrderId", async (req, res) => {
     console.error("Order not found: ", publicOrderId, " - ", orderData);
     return res.status(404).send({ error: "Order not found!" });
   }
-
   console.log("***** orderdata: ", orderData);
-
   const merchantData = await db
     .collection(MERCHANTS_COLLECTION)
     .findOne({ shopId: orderData.shopId });
-
   console.log("merchant data: ", merchantData);
   console.log("order data: ", orderData);
   // S3
@@ -399,29 +163,14 @@ app.get("/download/:code", async (req, res) => {
   res.redirect(signedUrl);
 });
 
-app.get("/privacy", (req, res) => {
-  res.sendFile(__dirname + "/public/privacy.html");
-});
-
-app.get("/tos", (req, res) => {
-  res.sendFile(__dirname + "/public/tos.html");
-});
-
-app.get("/changelog", (req, res) => {
-  res.sendFile(__dirname + "/public/changelog.html");
-});
-
-app.get("/faq", (req, res) => {
-  res.sendFile(__dirname + "/public/faq.html");
-});
-
-app.get("/pricing", (req, res) => {
-  res.sendFile(__dirname + "/public/pricing.html");
-});
-
-app.get("/tutorial", (req, res) => {
-  res.sendFile(__dirname + "/public/tutorial.html");
-});
+// Build static page routes where routes have the same string as the html file name.
+["privacy", "tos", "changelog", "faq", "pricing", "tutorial"].forEach(
+  (pageRoute) => {
+    app.get(`/${pageRoute}`, (req, res) => {
+      res.sendFile(`${__dirname}/public/${pageRoute}.html`);
+    });
+  }
+);
 
 // Basic server stuff:
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
